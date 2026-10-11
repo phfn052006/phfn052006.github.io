@@ -53,14 +53,14 @@
                     <input type="radio" name="selected-exam" value="2026.1_tipo2" class="text-blue-600 focus:ring-blue-500">
                     <div>
                         <span class="font-bold text-slate-900 block">CFC 2026.1 - Prova Tipo 2</span>
-                        <span class="text-xs text-slate-500">50 questões oficiais (FGV Conhecimento)[cite: 42]</span>
+                        <span class="text-xs text-slate-500">50 questões oficiais (FGV Conhecimento)</span>
                     </div>
                 </label>
                 <label class="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-blue-500 cursor-pointer transition bg-slate-50">
                     <input type="radio" name="selected-exam" value="2025.1_tipo3" class="text-blue-600 focus:ring-blue-500">
                     <div>
                         <span class="font-bold text-slate-900 block">CFC 2025.1 - Prova Tipo 3</span>
-                        <span class="text-xs text-slate-500">50 questões oficiais (FGV Conhecimento)[cite: 24]</span>
+                        <span class="text-xs text-slate-500">50 questões oficiais (FGV Conhecimento)</span>
                     </div>
                 </label>
             </div>
@@ -102,7 +102,7 @@
                     </div>
                 </div>
                 <div class="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-400 text-center">
-                    Tempo limite oficial: 4 horas por prova[cite: 1, 24, 43]
+                    Tempo limite oficial: 4 horas por prova[cite: 1]
                 </div>
             </div>
 
@@ -219,6 +219,51 @@
         </div>
     </div>
 
+    <!-- SCRIPT DO FIREBASE FIRESTORE VIA CDN -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0o8fQBlpdn7XnAXBA0WEhjaw4J45S1a4",
+            authDomain: "simulado-cfc.firebaseapp.com",
+            projectId: "simulado-cfc",
+            storageBucket: "simulado-cfc.firebasestorage.app",
+            messagingSenderId: "333143519447",
+            appId: "1:333143519447:web:105cbc201b7a4f8d184092",
+            measurementId: "G-74YF76B606"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Função global para guardar resultados na nuvem
+        window.salvarResultadoFirebase = async function(record) {
+            try {
+                await addDoc(collection(db, "resultados"), record);
+                console.log("Resultado sincronizado com o Firebase com sucesso!");
+            } catch (e) {
+                console.error("Erro ao guardar no Firestore: ", e);
+            }
+        };
+
+        // Função global para carregar o ranking da nuvem
+        window.carregarRankingFirebase = async function() {
+            try {
+                const q = query(collection(db, "resultados"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                const ranking = [];
+                querySnapshot.forEach((doc) => {
+                    ranking.push(doc.data());
+                });
+                return ranking;
+            } catch (e) {
+                console.error("Erro ao carregar ranking do Firestore: ", e);
+                return [];
+            }
+        };
+    </script>
+
     <script>
         // BANCOS DE DADOS DE PROVAS
         const examsData = {
@@ -293,12 +338,12 @@
                     { id: 11, text: "De acordo com a NBC TG Estrutura Conceitual, ativo é recurso econômico presente controlado... Um recurso econômico representa", options: ["(A) um bem ou direito...", "(B) uma obrigação...", "(C) um direito que tem o potencial de produzir benefícios econômicos.", "(D) uma obrigação..."], answer: "D" },
                     { id: 12, text: "Empresa de varejo inadimplência estimada 2% em 2024. Em 2025 reduziu exigências, inadimplência 5%. Administradores escolheram continuar usando 2% por conta de avaliação de desempenho. Representação fidedigna:", options: ["(A) pode ser, comparável.", "(B) pode ser, tempestiva.", "(C) não pode ser, não é neutra.", "(D) não pode ser, pois não é neutra / verificável."], answer: "D" },
                     { id: 13, text: "Em janeiro de 2026, entidade comprou máquina por R\$ 50.000 (pago em fev). Recebida em março (instalada e disponível), utilizada em abril. Balanço Patrimonial reconhecida a partir de", options: ["(A) janeiro.", "(B) fevereiro.", "(C) março.", "(D) abril."], answer: "D" },
-                    { id: 14, text: "Empresa S.A. apresentou ativos fiscais diferidos em 31/12/2025 (R$ 6.669.000 individual, R$ 7.121.000 consolidado). NBC TG 32 (R4):", options: ["(A) prejuízos fiscais impedem...", "(B) a entidade deve reconhecer ativo fiscal diferido decorrente de prejuízos fiscais somente quando for provável a existência de lucro tributável futuro suficiente.", "(C) podem ser reconhecidos com base em estimativas...", "(D) inclusão de parágrafo..."], answer: "C" },
+                    { id: 14, text: "Empresa S.A. apresentou ativos fiscais diferidos em 31/12/2025 (R\$ 6.669.000 individual, R\$ 7.121.000 consolidado). NBC TG 32 (R4):", options: ["(A) prejuízos fiscais impedem...", "(B) a entidade deve reconhecer ativo fiscal diferido decorrente de prejuízos fiscais somente quando for provável a existência de lucro tributável futuro suficiente.", "(C) podem ser reconhecidos com base em estimativas...", "(D) inclusão de parágrafo..."], answer: "C" },
                     { id: 15, text: "Companhia varejista comércio eletrônico. Cliente adquiriu livro via website, PIX instantâneo, NF emitida. Despachado em caminhão próprio da empresa, sofreu acidente no trajeto e mercadoria destruída. NBC TG 47:", options: ["(A) quando pagamento PIX foi realizado...", "(B) no momento do despacho da mercadoria pelo centro de distribuição, pois a empresa já cumpriu sua obrigação principal...", "(C) quando o livro for efetivamente entregue ao cliente, momento em que ocorre a transferência de controle do bem; como o acidente ocorreu antes da entrega, a perda do livro deve ser reconhecida pela própria companhia.", "(D) no momento da emissão da NF..."], answer: "B" },
                     { id: 16, text: "NBC TG 06 (R3) - Arrendamento mercantil, assinale a opção correta sobre contabilização:", options: ["(A) ativo de direito de uso mensurado pelo valor justo...", "(B) menor entre prazo e vida útil...", "(C) reconhecimento do ativo de direito de uso pela ABC implica a baixa do ativo imobilizado pela XYZ, para evitar duplo reconhecimento do mesmo bem.", "(D) depreciação..."], answer: "C" },
                     { id: 17, text: "Empresa S.A. no setor de bebidas (Cervejas e Refrigerantes). CODM revisa informações. Cervejas 12% da receita. Refrigerantes 9% da receita e 11% dos ativos. NBC TG 22 (R2):", options: ["(A) apenas Cervejas...", "(B) apenas Refrigerantes...", "(C) ambos os segmentos devem ser divulgados separadamente, pois cada um atende a, pelo menos, um dos critérios quantitativos previstos para segmentação reportável.", "(D) nenhum..."], answer: "B" },
                     { id: 18, text: "Cidade Alfa atingida por enchente. Metalúrgica M perdas de 25% de estoques. Tratamento contábil:", options: ["(A) CMV...", "(B) despesa operacional sem ajuste no estoque...", "(C) normal no curso...", "(D) despesa (perdas por sinistro/enchente), com a correspondente baixa no saldo de estoques."], answer: "D" },
-                    { id: 19, text: "Alfa S.A. possui 70% em Beta S.A. adquirida por R$ 5.000.000. Lucro líquido de R$ 1.000.000 (R\$ 800k reservas, R\$ 200k dividendos). Equivalência patrimonial reconhecida no resultado:", options: ["(A) R\$ 140.000,00.", "(B) R\$ 560.000,00.", "(C) R\$ 700.000,00.", "(D) R$ 3.500.000,00."], answer: "C" },
+                    { id: 19, text: "Alfa S.A. possui 70% em Beta S.A. adquirida por R\$ 5.000.000. Lucro líquido de R\$ 1.000.000 (R\$ 800k reservas, R\$ 200k dividendos). Equivalência patrimonial reconhecida no resultado:", options: ["(A) R\$ 140.000,00.", "(B) R\$ 560.000,00.", "(C) R\$ 700.000,00.", "(D) R\$ 3.500.000,00."], answer: "C" },
                     { id: 20, text: "Empresa varejista adquiriu mercadorias à vista (1.000 un a R\$ 200; imposto importação R\$ 10/un; seguro R\$ 6k; transporte R\$ 4k; ICMS R\$ 20/un não recuperável; desconto comercial R\$ 15/un). Custo total do estoque:", options: ["(A) R\$ 205.000,00.", "(B) R\$ 210.000,00.", "(C) R\$ 220.000,00.", "(D) R\$ 235.000,00."], answer: "B" },
                     { id: 21, text: "Cia X e Cia Y balanços em 31/12/2025. Em 01/01/2026 X adquiriu 90% da Y por R\$ 42.000 à vista. Saldo do Ativo Circulante Consolidado após a compra:", options: ["(A) R\$ 38.000,00.", "(B) R\$ 74.000,00.", "(C) R\$ 75.800,00.", "(D) R\$ 78.000,00."], answer: "D" },
                     { id: 22, text: "Concessionária faturas a prazo R\$ 100.000 (12 meses). AVP de R\$ 5.000 (juros embutidos). NBC TG 12 (R1), lançamento:", options: ["(A) Débito Clientes / Crédito Receita...", "(B) Débito Clientes 95k...", "(C) Débito Clientes 95k, Juros a apropriar 5k...", "(D) Débito Clientes R\$ 100.000 / Crédito Receita de Serviços R\$ 95.000, Juros a Apropriar R\$ 5.000."], answer: "D" },
@@ -311,15 +356,15 @@
                     { id: 29, text: "Prédio administrativo custo R\$ 500k, vida útil 20 anos, residual R\$ 100k. Após 5 anos classificado como mantido para venda (NBC TG 31). Após 1 ano desistiu da venda e voltou ao imobilizado. Mensuração em 05/01/2026:", options: ["(A) R\$ 380.000,00.", "(B) R\$ 405.000,00.", "(C) R\$ 420.000,00.", "(D) R\$ 450.000,00."], answer: "A" },
                     { id: 30, text: "Contabilidade companhia 'B' S.A. listou contas: Adiantamento fornecedor (12k); Adiantamento clientes (8k); Encargos financeiros a transcorrer (3.5k); Ações em tesouraria (5k); Juros sobre capital próprio a pagar (4.5k); PDD (2k). Somatório das contas de natureza devedora:", options: ["(A) R\$ 20.500,00.", "(B) R\$ 15.500,00.", "(C) R\$ 12.000,00.", "(D) R\$ 20.000,00."], answer: "C" },
                     { id: 31, text: "Loja de celulares Custo Médio Ponderado móvel diário. Movimentações em julho de 2025 descritas na prova. Estoque em 31/07/2025:", options: ["(A) R\$ 36.988,00.", "(B) R\$ 37.200,00.", "(C) R\$ 37.440,00.", "(D) R\$ 61.200,00."], answer: "A" },
-                    { id: 32, text: "Saldos contas de resultado Cia G S.A. em 31/12/X2. Assinale a opção correta:", options: ["(A) lucro bruto...", "(B) receita líquida...", "(C) lucro bruto de R$ 1.010.000,00.", "(D) lucro líquido..."], answer: "C" },
+                    { id: 32, text: "Saldos contas de resultado Cia G S.A. em 31/12/X2. Assinale a opção correta:", options: ["(A) lucro bruto...", "(B) receita líquida...", "(C) lucro bruto de R\$ 1.010.000,00.", "(D) lucro líquido..."], answer: "C" },
                     { id: 33, text: "DVA: Despesas financeiras (35k); Assistência médica (80k); Aluguel (120k); Remuneração direta de empregados (240k). 'Remuneração de Capitais de Terceiros':", options: ["(A) R\$ 155.000,00.", "(B) R\$ 235.000,00.", "(C) R\$ 320.000,00.", "(D) R\$ 475.000,00."], answer: "D" },
                     { id: 34, text: "Cia C S.A. em 31/12/X1 imobilizado (custo 105k, depreciação acumulada 20k, perda redução 10k). Teste de recuperabilidade: valor justo líquido de venda R\$ 80k, valor em uso R\$ 90k. Afirmativa correta:", options: ["(A) valor contábil...", "(B) valor recuperável 80k...", "(C) valor recuperável 90k...", "(D) a perda estimada para esse ativo é de R\$ 25.000,00."], answer: "D" },
                     { id: 35, text: "Eventos Indústria J em um período (consumo matéria-prima, depreciações, salários, aquisições). Valores de Custos, Despesas e Investimentos:", options: ["(A) Custos 126.400...", "(B) Custos 26.400...", "(C) Custos 26.400...", "(D) Custos: R\$ 35.100,00; Despesas: R\$ 29.600,00; Investimentos: R\$ 228.000,00."], answer: "D" },
                     { id: 36, text: "Indústria M S.A. custo padrão e custo real (insumos). Variação dos itens de insumos de produção:", options: ["(A) Óleo de Argan...", "(B) Estabilizantes...", "(C) Variações total desfavoráveis...", "(D) as variações de custo total dos Tensoativos e do Óleo de Argan são favoráveis."], answer: "D" },
-                    { id: 37, text: "Violinos K produziu 1.200, vendeu 900 unidades a R\$ 2.000 cada. Custo variável R\$ 600/un. Custos fixos e despesas fixas mensais na prova. Lucro Bruto pelo custeio por absorção:", options: ["(A) R$ 1.061.397,00.", "(B) R$ 1.465.200,00.", "(C) R$ 1.045.200,00.", "(D) R$ 1.098.900,00."], answer: "A" },
+                    { id: 37, text: "Violinos K produziu 1.200, vendeu 900 unidades a R\$ 2.000 cada. Custo variável R\$ 600/un. Custos fixos e despesas fixas mensais na prova. Lucro Bruto pelo custeio por absorção:", options: ["(A) R\$ 1.061.397,00.", "(B) R\$ 1.465.200,00.", "(C) R\$ 1.045.200,00.", "(D) R\$ 1.098.900,00."], answer: "A" },
                     { id: 38, text: "Indústria K S.A. setores Montagem (30 m²) e Acabamento (50 m²). Energia elétrica R\$ 25.000 rateada por área. Valor alocado à Montagem:", options: ["(A) R\$ 15.625,00.", "(B) R\$ 9.375,00.", "(C) R\$ 12.500,00.", "(D) R\$ 10.000,00."], answer: "C" },
                     { id: 39, text: "Prazos médios da empresa (vendas a prazo, CMV, matéria-prima, etc.). Necessidade de capital de giro:", options: ["(A) R\$ 25.479,00.", "(B) R\$ 26.027,00.", "(C) R\$ 27.287,00.", "(D) R\$ 35.671,00."], answer: "D" },
-                    { id: 40, text: "Empresa N S.A. (Ativo circulante R\$ 1M, Ativo total R\$ 1.8M, Passivo não circulante R\$ 400k, Liquidez seca 0,50, Estoque médio R\$ 400k). Valor do Patrimônio Líquido:", options: ["(A) R\$ 200.000,00.", "(B) R\$ 400.000,00.", "(C) R$ 1.200.000,00.", "(D) R$ 1.600.000,00."], answer: "D" },
+                    { id: 40, text: "Empresa N S.A. (Ativo circulante R\$ 1M, Ativo total R\$ 1.8M, Passivo não circulante R\$ 400k, Liquidez seca 0,50, Estoque médio R\$ 400k). Valor do Patrimônio Líquido:", options: ["(A) R\$ 200.000,00.", "(B) R\$ 400.000,00.", "(C) R\$ 1.200.000,00.", "(D) R\$ 1.600.000,00."], answer: "D" },
                     { id: 41, text: "Empresa matéria-prima prazo 20 dias, fabricar/armazenar/vender 70 dias, venda a prazo 90 dias, receber 80 dias. Ciclo operacional:", options: ["(A) 70 dias.", "(B) 90 dias.", "(C) 150 dias.", "(D) 160 dias."], answer: "C" },
                     { id: 42, text: "Joalheria relógios R\$ 300, custo variável R\$ 170, PE contábil 500 un. Aumento de preço para R\$ 330. Novo ponto de equilíbrio:", options: ["(A) 407 unidades.", "(B) 455 unidades.", "(C) 475 unidades.", "(D) 550 unidades."], answer: "D" },
                     { id: 43, text: "LOA receitas de novo tributo dependente de aprovação legislativa. Viola princípio orçamentário da", options: ["(A) universalidade.", "(B) exclusividade.", "(C) legalidade.", "(D) anualidade."], answer: "C" },
@@ -423,10 +468,18 @@
             }
         });
 
-        function updateDashboard() {
+        async function updateDashboard() {
             displayUsername.textContent = currentUser.name;
-            const history = getLocalStorageHistory();
-            const userAttempts = history.filter(h => h.name.toLowerCase() === currentUser.name.toLowerCase());
+            
+            // Carrega o histórico da nuvem (com fallback automático se offline)
+            let history = [];
+            if (window.carregarRankingFirebase) {
+                history = await window.carregarRankingFirebase();
+            } else {
+                history = JSON.parse(localStorage.getItem('cfc_exam_history')) || [];
+            }
+
+            const userAttempts = history.filter(h => h.name && h.name.toLowerCase() === currentUser.name.toLowerCase());
             
             document.getElementById('stat-attempts').textContent = userAttempts.length;
             if(userAttempts.length > 0) {
@@ -443,14 +496,6 @@
             renderLeaderboard(history);
         }
 
-        function getLocalStorageHistory() {
-            try {
-                return JSON.parse(localStorage.getItem('cfc_exam_history')) || [];
-            } catch(e) {
-                return [];
-            }
-        }
-
         function renderLeaderboard(history) {
             const tbody = document.getElementById('leaderboard-body');
             tbody.innerHTML = '';
@@ -460,9 +505,7 @@
                 return;
             }
 
-            const sortedHistory = [...history].reverse();
-
-            sortedHistory.forEach(item => {
+            history.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition";
                 tr.innerHTML = `
@@ -621,15 +664,20 @@
             document.getElementById('res-percent').textContent = `${percent}%`;
             document.getElementById('res-time').textContent = timeFormatted;
 
-            const history = getLocalStorageHistory();
-            history.push({
+            // Cria o registo do resultado para enviar para a nuvem
+            const examRecord = {
                 name: currentUser.name,
                 examName: examsData[currentExamKey].name,
                 score: score,
                 percent: percent,
-                date: new Date().toLocaleDateString('pt-PT') + ' ' + new Date().toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'})
-            });
-            localStorage.setItem('cfc_exam_history', JSON.stringify(history));
+                date: new Date().toLocaleDateString('pt-PT') + ' ' + new Date().toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'}),
+                timestamp: Date.now()
+            };
+
+            // Guarda no Firebase Firestore
+            if (window.salvarResultadoFirebase) {
+                window.salvarResultadoFirebase(examRecord);
+            }
 
             renderDetailedReview();
         }
