@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Simulados CFC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- ECRÃ DE LOGIN / SEGURANÇA DE UTILIZADORES -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-100">
+            <div class="text-center mb-6">
+                <div class="bg-blue-600 text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900">Simulador CFC</h1>
+                <p class="text-slate-500 text-sm mt-1">Identifique-se com o seu nome e código pessoal</p>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">O seu Nome</label>
+                    <input type="text" id="user-name" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: João da Silva">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Código de Acesso (Palavra-passe)</label>
+                    <input type="password" id="user-code" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ex: 1234">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-blue-600/30">
+                    Aceder à Plataforma
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE SELEÇÃO DE PROVA -->
+    <div id="exam-modal" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 md:p-8 border border-slate-100">
+            <h3 class="text-xl font-bold text-slate-900 mb-2">Escolha o Simulado</h3>
+            <p class="text-slate-500 text-sm mb-6">Selecione qual prova deseja realizar agora:</p>
+            
+            <div class="space-y-3 mb-6 max-h-[300px] overflow-y-auto pr-1">
+                <label class="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-blue-500 cursor-pointer transition bg-slate-50">
+                    <input type="radio" name="selected-exam" value="2026.2_tipo1" checked class="text-blue-600 focus:ring-blue-500">
+                    <div>
+                        <span class="font-bold text-slate-900 block">CFC 2026.2 - Prova Tipo 1</span>
+                        <span class="text-xs text-slate-500">50 questões oficiais (FGV Conhecimento)[cite: 1]</span>
+                    </div>
+                </label>
+                <label class="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-blue-500 cursor-pointer transition bg-slate-50">
+                    <input type="radio" name="selected-exam" value="2026.1_tipo2" class="text-blue-600 focus:ring-blue-500">
+                    <div>
+                        <span class="font-bold text-slate-900 block">CFC 2026.1 - Prova Tipo 2</span>
+                        <span class="text-xs text-slate-500">50 questões oficiais (FGV Conhecimento)[cite: 42]</span>
+                    </div>
+                </label>
+                <label class="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-blue-500 cursor-pointer transition bg-slate-50">
+                    <input type="radio" name="selected-exam" value="2025.1_tipo3" class="text-blue-600 focus:ring-blue-500">
+                    <div>
+                        <span class="font-bold text-slate-900 block">CFC 2025.1 - Prova Tipo 3</span>
+                        <span class="text-xs text-slate-500">50 questões oficiais (FGV Conhecimento)[cite: 24]</span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button id="cancel-modal-btn" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-sm transition">Cancelar</button>
+                <button id="confirm-start-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow-md shadow-emerald-600/20">Iniciar Prova</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAINEL PRINCIPAL / DASHBOARD E RANKING -->
+    <div id="dashboard-screen" class="hidden flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 flex flex-col gap-6">
+        <header class="bg-white rounded-2xl shadow-sm p-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-slate-200">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900">Olá, <span id="display-username" class="text-blue-600"></span>!</h2>
+                <p class="text-sm text-slate-500">Central de Simulados do Exame de Suficiência CFC</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="open-modal-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-md shadow-emerald-600/20 flex items-center gap-2">
+                    <i class="fa-solid fa-play"></i> Novo Simulado
+                </button>
+                <button id="logout-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl font-semibold transition">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200 md:col-span-1 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-blue-600"></i> O seu Histórico Pessoal
+                    </h3>
+                    <div id="user-stats" class="space-y-3 mt-4 text-sm text-slate-600">
+                        <p>Simulados Realizados: <strong id="stat-attempts" class="text-slate-900">0</strong></p>
+                        <p>Melhor Pontuação: <strong id="stat-best" class="text-slate-900">0%</strong></p>
+                        <p>Média de Acertos: <strong id="stat-avg" class="text-slate-900">0%</strong></p>
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 text-xs text-slate-400 text-center">
+                    Tempo limite oficial: 4 horas por prova[cite: 1, 24, 43]
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200 md:col-span-2">
+                <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-amber-500"></i> Ranking Geral e Histórico da Turma
+                </h3>
+                <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-xs sticky top-0">
+                            <tr>
+                                <th class="p-3 rounded-l-lg">Utilizador</th>
+                                <th class="p-3">Prova</th>
+                                <th class="p-3">Nota</th>
+                                <th class="p-3 rounded-r-lg">Data</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-body" class="divide-y divide-slate-100">
+                            <!-- Preenchido via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ECRÃ DA PROVA / SIMULADO -->
+    <div id="exam-screen" class="hidden flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col gap-6">
+        <header class="bg-white rounded-2xl shadow-sm p-4 md:px-6 flex justify-between items-center border border-slate-200 sticky top-4 z-40">
+            <div class="flex items-center gap-4">
+                <button id="back-dashboard" class="text-slate-500 hover:text-slate-800 font-semibold text-sm flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-left"></i> Sair
+                </button>
+                <h1 id="exam-title-header" class="font-bold text-slate-900 hidden sm:block">Simulado CFC</h1>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-xl font-mono font-bold text-sm border border-amber-200">
+                    <i class="fa-regular fa-clock"></i> <span id="timer">04:00:00</span>
+                </div>
+                <button id="finish-exam-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition shadow-md shadow-blue-600/20">
+                    Finalizar Simulado
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            <main class="lg:col-span-3 bg-white rounded-2xl shadow-sm p-6 md:p-8 border border-slate-200 flex flex-col gap-6">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                    <span id="question-badge" class="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-lg uppercase">Questão 1 de 50</span>
+                    <span id="question-status-text" class="text-xs text-slate-400 font-medium">Não respondida</span>
+                </div>
+
+                <div id="question-content" class="text-slate-800 text-base md:text-lg leading-relaxed"></div>
+
+                <div id="options-container" class="space-y-3"></div>
+
+                <div class="flex justify-between items-center pt-6 border-t border-slate-100 mt-4">
+                    <button id="prev-btn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2 disabled:opacity-50">
+                        <i class="fa-solid fa-chevron-left"></i> Anterior
+                    </button>
+                    <button id="next-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2">
+                        Seguinte <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </main>
+
+            <aside class="lg:col-span-1 bg-white rounded-2xl shadow-sm p-5 border border-slate-200 sticky top-24">
+                <h3 class="font-bold text-slate-900 text-sm mb-3 flex items-center justify-between">
+                    <span>Gabarito / Questões</span>
+                    <span id="answered-count" class="text-xs font-normal text-slate-500">0/50 respondidas</span>
+                </h3>
+                <p class="text-xs text-slate-400 mb-4">Clique para saltar. As respondidas ficam <span class="text-emerald-600 font-semibold">verdes</span>.</p>
+                <div id="sidebar-grid" class="grid grid-cols-5 gap-2 max-h-[450px] overflow-y-auto pr-1"></div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ECRÃ DE RESULTADOS E ANÁLISE -->
+    <div id="result-screen" class="hidden flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col gap-6">
+        <div class="bg-white rounded-2xl shadow-sm p-8 text-center border border-slate-200">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
+                <i class="fa-solid fa-award"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900">Simulado Finalizado!</h2>
+            <p class="text-slate-500 mt-1">Veja abaixo o seu desempenho geral e a análise detalhada.</p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <span class="text-xs text-slate-400 uppercase font-semibold block">Acertos</span>
+                    <span id="res-score" class="text-2xl font-bold text-emerald-600">0 / 50</span>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <span class="text-xs text-slate-400 uppercase font-semibold block">Aproveitamento</span>
+                    <span id="res-percent" class="text-2xl font-bold text-blue-600">0%</span>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <span class="text-xs text-slate-400 uppercase font-semibold block">Tempo Gasto</span>
+                    <span id="res-time" class="text-2xl font-bold text-slate-700">00:00</span>
+                </div>
+            </div>
+
+            <div class="flex justify-center gap-4">
+                <button id="back-to-dash-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition">
+                    Voltar ao Painel
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8 border border-slate-200">
+            <h3 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-check text-blue-600"></i> Análise Detalhada (Erros e Acertos)
+            </h3>
+            <div id="detailed-review" class="space-y-6 divide-y divide-slate-100"></div>
+        </div>
+    </div>
+
+    <script>
+        // BANCOS DE DADOS DE PROVAS
+        const examsData = {
+            "2026.2_tipo1": {
+                name: "CFC 2026.2 - Prova Tipo 1",
+                questions: [
+                    { id: 1, text: "Nas frases abaixo foram feitas substituições, mantendo-se o mesmo sentido original. Assinale a opção em que a modificação não está adequada por alterar esse sentido original.", options: ["(A) A música é a alma da geometria / A música é a essência da geometria.", "(B) Somente por meio do amor o homem pode ser liberado de si mesmo / Por meio do amor somente o homem pode ser liberado de si mesmo.", "(C) O amor é a capacidade de perceber o semelhante no dessemelhante / O amor é a capacidade de percepção do semelhante no dessemelhante.", "(D) Todas as paixões nos fazem cometer erros / Todas as paixões fazem que cometamos erros."], answer: "B" },
+                    { id: 2, text: "Assinale a única frase abaixo que se mostra gramaticalmente correta.", options: ["(A) A polícia interviu na briga entre as torcidas, após o jogo.", "(B) Compras à crédito podem trazer problemas futuros.", "(C) Haviam muitos carros abandonados ne estrada por causa dos desabamentos.", "(D) Para mim, trabalhar é uma atividade prazerosa."], answer: "D" },
+                    { id: 3, text: "Um empréstimo no valor de R\$ 500.000,00 será quitado segundo o Sistema de Amortização Constante (SAC)... Desconsiderando-se quaisquer encargos adicionais... é correto concluir que esse é o valor do", options: ["(A) 17º pagamento.", "(B) 18º pagamento.", "(C) 19º pagamento.", "(D) 20º pagamento."], answer: "B" },
+                    { id: 4, text: "Ao encerrar o exercício social, o contador de uma empresa identificou um excedente temporário de caixa no valor de R\$ 25.000,00... taxa de 8% ao ano, juros compostos, por 2 anos:", options: ["(A) R\$ 26.000,00.", "(B) R\$ 27.000,00.", "(C) R\$ 28.160,00.", "(D) R\$ 29.160,00."], answer: "D" },
+                    { id: 5, text: "Em observância às formalidades constitucionais e legais... autarquia Alfa publicou edital de licitação... autarquia Alfa por se tratar de uma pessoa jurídica de direito", options: ["(A) privado integrante da Administração Direta...", "(B) público integrante da Administração Direta...", "(C) público integrante da Administração Indireta, foi criada por lei específica.", "(D) privado integrante da Administração Indireta..."], answer: "C" },
+                    { id: 6, text: "Após a observância do contraditório e da ampla defesa... autarquia Alfa, editou ato administrativo punitivo... sanção administrativa de suspensão... infração funcional praticada por Lucas é", options: ["(A) a finalidade do ato administrativo punitivo.", "(B) o motivo do ato administrativo punitivo.", "(C) o objeto do ato administrativo punitivo.", "(D) o móvel do ato administrativo punitivo."], answer: "B" },
+                    { id: 7, text: "Ao analisar o teor da Constituição Federal, João constatou que determinado princípio foi incluído pela EC nº 19/1998... Administração Pública gerencial... princípio da", options: ["(A) impessoalidade.", "(B) moralidade.", "(C) legalidade.", "(D) eficiência."], answer: "D" },
+                    { id: 8, text: "A empresa Horizonte Ltda. enfrenta dificuldades financeiras e gestores solicitam relatórios 'menos detalhados'... NBC PG 01 e NBC PG 100... a atuação adequada deve refletir que a Contabilidade", options: ["(A) serve exclusivamente como instrumento interno...", "(B) atende prioritariamente aos administradores...", "(C) deve adaptar o nível de transparência...", "(D) tem a função social de produzir informações úteis, fidedignas e transparentes para os diversos usuários, preservando o interesse público."], answer: "D" },
+                    { id: 9, text: "Durante procedimento de fiscalização do CRC, verificou-se que um contador responsável técnico delegava integralmente a execução... Resolução CFC nº 1.612/2021... responsabilidade técnica é", options: ["(A) pessoal e indelegável, limitada ao vínculo contratual firmado com o cliente, exigindo supervisão efetiva, observância das normas profissionais e cooperação com a fiscalização para preservar o interesse público.", "(B) pessoal e delegável...", "(C) impessoal e delegável...", "(D) pessoal e indelegável."], answer: "A" },
+                    { id: 10, text: "O contador Marcos perito contábil CNPC cumpriu 35 pontos EPC (10 aquisição). NBC PG 12 (R5). Avalie (V ou F):\nI. Submissão facultativa.\nII. Pontuação insuficiente (exige 40, 12 aquisição).\nIII. Envio intempestivo (prazo até 31 jan).", options: ["(A) F-V-V.", "(B) V-F-F.", "(C) F-F-V.", "(D) V-V-F"], answer: "D" },
+                    { id: 11, text: "Em março de 2026, sociedade empresária publicou demonstrações contábeis referentes a 31/12/2025... NBC TG Estrutura Conceitual... período de relatório... e também", options: ["(A) calculam principais indicadores...", "(B) apresentam projeções...", "(C) reproduzem normas...", "(D) fornecem informações comparativas de, pelo menos, um período de relatório anterior."], answer: "D" },
+                    { id: 12, text: "Com base nos conceitos de ativos, passivos, receitas e despesas e reconhecimento (NBC TG Estrutura Conceitual), assinale a afirmativa correta:", options: ["(A) A receita deve ser reconhecida quando o cliente realiza o pedido...", "(B) A distribuição de dividendos deve ser reconhecida como despesa financeira...", "(C) O aumento de capital gera receitas...", "(D) O custo das mercadorias vendidas deve ser reconhecido quando ocorre a transferência de controle das mercadorias ao cliente, com baixa dos estoques."], answer: "D" },
+                    { id: 13, text: "Uma companhia S.A. realizou IPO... objetivo do relatório financeiro para fins gerais (NBC TG Estrutura Conceitual):", options: ["(A) apresentar valor de mercado...", "(B) administração depende para decisões estratégicas...", "(C) fornece todas as informações...", "(D) fornecer informações úteis a investidores, credores por empréstimos e outros credores, existentes e potenciais, para decisões sobre fornecimento de recursos."], answer: "D" },
+                    { id: 14, text: "Empresa S.A. lavra e transporte de petróleo. Plataforma pegou fogo em 31/12/2025 antes da emissão das demonstrações. NBC TG 24 (R2) - Evento Subsequente, o incêndio", options: ["(A) desconsiderado por ocorrer fora do período...", "(B) desconsiderado pois não houve baixa...", "(C) é um evento subsequente que representa condição surgida após a data-base, devendo ser divulgado em nota explicativa.", "(D) exige ajuste nas demonstrações contábeis."], answer: "C" },
+                    { id: 15, text: "Cargas ABC S.A. veículo no Imobilizado. Teste de recuperabilidade (impairment): Valor Contábil = R\$ 150.000; Valor Justo líquido = R\$ 130.000; Valor em uso = R\$ 145.000. NBC TG 01 (R4):", options: ["(A) reconhecer perda de R\$ 20.000...", "(B) não reconhecer nenhuma perda...", "(C) reconhecer uma perda por desvalorização no valor de R\$ 5.000, para ajustar o valor contábil ao valor recuperável.", "(D) ajustar ativo para R\$ 130.000..."], answer: "C" },
+                    { id: 16, text: "Indústria Metalúrgica Aço S.A. adquiriu máquina: Preço = R\$ 200.000; Frete/seguro = R\$ 10.000; Preparação/fundação = R\$ 15.000; Treinamento = R\$ 5.000; Testes = R\$ 3.000. NBC TG 27 (R4) - Ativo Imobilizado, o valor inicial reconhecido é de:", options: ["(A) R\$ 228.000,00.", "(B) R\$ 233.000,00.", "(C) R\$ 200.000,00.", "(D) R\$ 210.000,00."], answer: "A" },
+                    { id: 17, text: "Empresa adquiriu marca com vida útil indefinida, software com vida útil definida e máquinas. NBC TG 01, 04 e 27, assinale a opção correta:", options: ["(A) Inicia amortização apenas com propriedade legal...", "(B) Amortiza marca indefinida a 10%...", "(C) A empresa não amortiza a marca de vida útil indefinida, mas realiza anualmente o teste de redução ao valor recuperável desse ativo.", "(D) Utiliza taxas fiscais..."], answer: "C" },
+                    { id: 18, text: "Sociedade 'A' adquiriu mercadorias à vista por R\$ 100.000 (bruto). ICMS recuperável: R\$ 18.000. Frete pago: R\$ 4.000. NBC TG 16 (R2) - Estoques, o valor inicial a ser registrado em Estoques é de:", options: ["(A) R\$ 86.000,00.", "(B) R\$ 100.000,00.", "(C) R\$ 82.000,00.", "(D) R\$ 104.000,00."], answer: "A" },
+                    { id: 19, text: "Departamento jurídico Empresa Ltda.: CASO 1 (Autuação Fiscal, Provável, estimável); CASO 2 (Ação Cível, Possível); CASO 3 (Trabalhista, Remota). NBC TG 25 (R2):", options: ["(A) CASO 1: Reconhecer provisão e divulgar; CASO 2: Divulgar como passivo contingente em nota explicativa; CASO 3: Não reconhecer nem divulgar.", "(B) CASO 1: Apenas divulgar...", "(C) CASO 1: Nada...", "(D) CASO 1: Reconhecer..."], answer: "A" },
+                    { id: 20, text: "Relacione bases de mensuração do valor atual (NBC TG Estrutura Conceitual):\n1. Valor Justo\n2. Valor em uso\n3. Custo corrente\n4. Valor de cumprimento", options: ["(A) 4-2-3-1.", "(B) 1-4-2-3.", "(C) 2-3-1-4.", "(D) 3-4-2-1."], answer: "B" },
+                    { id: 21, text: "Empresa comercial em agosto de 2026: Salários Brutos R\$ 100.000; INSS retido R\$ 11.000; IRRF retido R\$ 4.000. Lançamento da apropriação:", options: ["(A) Débito Salários (85k)...", "(B) Débito Despesa...", "(C) Crédito...", "(D) Débito - Despesa com Salários (R\$ 100.000); Crédito - Passivo Circulante - Salários a Pagar (R\$ 85.000), INSS a Recolher (R\$ 11.000) e IRRF a Recolher (R\$ 4.000)."], answer: "D" },
+                    { id: 22, text: "Em junho de 2026, contratou professor por R\$ 12.000 (pago em 3 parcelas). Metade das aulas em junho, metade em julho. Regime de Competência, despesa em 30/06/2026:", options: ["(A) zero.", "(B) R\$ 4.000,00.", "(C) R\$ 6.000,00.", "(D) R\$ 12.000,00."], answer: "C" },
+                    { id: 23, text: "Em 31/12/2025, Cia Gama reconheceu dividendos mínimos obrigatórios de R\$ 50.000. Na DMPL, o total do patrimônio líquido", options: ["(A) diminuiu.", "(B) aumentou.", "(C) permaneceu o mesmo, assim como saldos...", "(D) permaneceu o mesmo, mas houve modificações nos saldos das contas."], answer: "A" },
+                    { id: 24, text: "Em 01/01/2025, Cia XYZ comprou veículo por R\$ 50.000 à vista (vida útil 5 anos, linear, residual nulo). Em 31/12/2025 vendeu por R\$ 42.000 à vista. Na DFC, a atividade de investimento", options: ["(A) gerou líquido R\$ 2.000,00.", "(B) gerou líquido R\$ 42.000,00.", "(C) consumiu líquido R\$ 8.000,00.", "(D) consumiu líquido R\$ 10.000,00."], answer: "C" },
+                    { id: 25, text: "Em 31/12/2025, Cia KMLK não apresentou saldo em 'Valor Adicionado Recebido em Transferência' na DVA. Isso pode indicar que", options: ["(A) presta atividades em imóvel próprio.", "(B) não possui investimento em controladas e coligadas.", "(C) não reconheceu perda...", "(D) tem todo serviço contratado..."], answer: "B" },
+                    { id: 26, text: "Cia Alfa adquiriu 100% da Cia Beta por R\$ 90.000 (valor justo). Beta tinha Disponibilidades (R\$ 12k) e Terrenos (valor justo R\$ 45k). Marca atribuída: R\$ 18k. O goodwill reconhecido foi de:", options: ["(A) R\$ 15.000,00.", "(B) R\$ 27.000,00.", "(C) R\$ 33.000,00.", "(D) R\$ 38.000,00."], answer: "A" },
+                    { id: 27, text: "Cia Delta possuía caixa R\$ 40k, contas a receber R\$ 10k, PL R\$ 50k. Intenção de comprar equipamentos de R\$ 30k; contrato de manutenção de R\$ 15k; dívida de R\$ 25k de matéria-prima recebida. Avalie afirmativas ativos/passivos (NBC TG Estrutura Conceitual):", options: ["(A) I e III, apenas.", "(B) III, apenas.", "(C) II, apenas.", "(D) I e II, apenas."], answer: "C" },
+                    { id: 28, text: "Controladora Alfa vendeu mercadorias para controlada Beta por R\$ 500.000 (custo R\$ 350.000). Em 31/12/2021, 40% em estoque. Lucro não realizado a ser eliminado na consolidação:", options: ["(A) R\$ 60.000,00.", "(B) R\$ 90.000,00.", "(C) R\$ 120.000,00.", "(D) R\$ 150.000,00."], answer: "A" },
+                    { id: 29, text: "Empresa 'F' S.A. iniciou em 01/11/2025: Capital R\$ 200k em banco; Compra de mercadorias a prazo R\$ 50k; Serviços à vista PIX R\$ 30k; Despesas gerais R\$ 5k. Ativo Total e PL em 30/11/2025:", options: ["(A) R\$ 225.000,00 e R\$ 225.000,00.", "(B) R\$ 275.000,00 e R\$ 225.000,00.", "(C) R\$ 275.000,00 e R\$ 200.000,00.", "(D) R\$ 225.000,00 e R\$ 175.000,00."], answer: "A" },
+                    { id: 30, text: "Em 10/06/2025, empresa 'CD' pagou duplicata em atraso (nominal R\$ 10.000, juros de mora R\$ 500, total pago R\$ 10.500). Lançamento correto:", options: ["(A) Débito Duplicatas R\$ 10.000, Juros R\$ 500 / Crédito Bancos R\$ 10.500", "(B) Débito Duplicatas a pagar R\$ 10.500 / Crédito Bancos R\$ 10.500", "(C) Débito R\$ 11.000...", "(D) Débito Bancos..."], answer: "B" },
+                    { id: 31, text: "Saldos da empresa 'Qui' S.A.: Caixa R\$ 15k; Duplicatas a receber R\$ 45k; PDD R\$ 2k; Estoques R\$ 25k; Adiantamento fornecedor R\$ 10k; Adiantamento de Clientes R\$ 14k; Veículos R\$ 50k; Fornecedores R\$ 30k. Valor total líquido no Ativo Circulante:", options: ["(A) R\$ 83.000,00.", "(B) R\$ 93.000,00.", "(C) R\$ 95.000,00.", "(D) R\$ 97.000,00."], answer: "B" },
+                    { id: 32, text: "Empresa 'Q' construiu máquina por R\$ 410.000 (pronta 01/02/2025, vida útil 30 anos, residual R\$ 50.000). Em 01/11/2025 nova estimativa: vida útil 25 anos a partir da data, residual R\$ 30.000. Despesa de depreciação em 2025:", options: ["(A) R\$ 13.527,51.", "(B) R\$ 13.933,33.", "(C) R\$ 11.473,33.", "(D) R\$ 11.000,00."], answer: "D" },
+                    { id: 33, text: "Empresa estoque inicial 100 un a R\$ 80 (R\$ 8.000). Dia 2: +100 un a R\$ 100; Dia 10: -100 un; Dia 15: +200 un a R\$ 120; Dia 20: -200 un; Dia 25: +100 un a R\$ 130. Custo médio ponderado móvel, saldo final de estoques:", options: ["(A) R\$ 21.000,00.", "(B) R\$ 22.000,00.", "(C) R\$ 24.000,00.", "(D) R\$ 25.000,00."], answer: "C" },
+                    { id: 34, text: "Fábrica JP Ltda. produz colheres de sobremesa e sopa. Dados na prova. CIP Total = R\$ 140.000. Assinale a afirmativa correta:", options: ["(A) R\$ 35.000,00 de CIP alocados às colheres de sopa por MOD.", "(B) R\$ 84.000...", "(C) R\$ 98.000...", "(D) R\$ 56.000..."], answer: "A" },
+                    { id: 35, text: "Empresa Roupas em Linho LTDA. produz camisas e camisetas pelo Custeio ABC. Dados de custos e direcionadores da prova. Custo unitário Camisas e Camisetas, respectivamente:", options: ["(A) Camisas R\$ 125,69; Camisetas R\$ 116,13.", "(B) Camisas R\$ 155,89; Camisetas R\$ 149,68.", "(C) Camisas R\$ 129,22; Camisetas R\$ 134,87.", "(D) Camisas R\$ 139,89; Camisetas R\$ 139,65."], answer: "B" },
+                    { id: 36, text: "Indústria realizou eventos: Compra matéria-prima R\$ 18k; Consumo matéria-prima R\$ 12k; Aquisição máquinas fábrica R\$ 40k; Depreciação máquinas produção R\$ 2.500; Salários jurídico e marketing R\$ 6k; Comissão vendas R\$ 3k. Valor total dos custos incorridos:", options: ["(A) R\$ 14.500,00.", "(B) R\$ 18.000,00.", "(C) R\$ 17.500,00.", "(D) R\$ 72.500,00."], answer: "A" },
+                    { id: 37, text: "Loja adquiriu 200 mochilas por R\$ 16.000 + frete R\$ 400. Vendeu 180 por R\$ 36.000. Comissão 5%. Margem de contribuição unitária da mochila:", options: ["(A) R\$ 108,00.", "(B) R\$ 110,00.", "(C) R\$ 118,00.", "(D) R\$ 120,00."], answer: "A" },
+                    { id: 38, text: "Custos fixos R\$ 400k; Despesas fixas R\$ 100k; Custos variáveis R\$ 200/un; Despesas variáveis R\$ 50/un; Preço unitário R\$ 750; Custo oportunidade R\$ 500k; Parcela não desembolsável R\$ 250k. Pontos de equilíbrio contábil, econômico e financeiro:", options: ["(A) 1.000, 1.800 e 1.500.", "(B) 1.500, 2.000 e 800 unidades.", "(C) 1.500, 1.800 e 800.", "(D) 1.500, 1.700 e 300."], answer: "B" },
+                    { id: 39, text: "Relação entre receita de vendas e custo das mercadorias vendidas. Recomenda-se realizar análise", options: ["(A) vertical do Balanço.", "(B) horizontal do Balanço.", "(C) vertical da Demonstração do Resultado.", "(D) horizontal da DRE."], answer: "C" },
+                    { id: 40, text: "Empresa apurou balanço (2024 e 2025)... Indicadores de liquidez geral em 2024 e 2025:", options: ["(A) 1,0 e 1,0.", "(B) 1,6 e 0,6.", "(C) 2,6 e 1,1.", "(D) 2,0 e 1,5."], answer: "D" },
+                    { id: 41, text: "Município ABC patrimônio cultural no Balanço Patrimonial, dificuldade representação completa, neutra e livre de erro. NBC TSP Estrutura Conceitual, descumpre:", options: ["(A) relevância.", "(B) representação fidedigna.", "(C) compreensibilidade.", "(D) verificabilidade."], answer: "B" },
+                    { id: 42, text: "Princípios Orçamentários (MCASP):\nCaso 1: Dois documentos orçamentários.\nCaso 2: LOA para vigorar por dois anos.\nCaso 3: Fundações não incluídas.\nInfringem, respectivamente:", options: ["(A) exclusividade...", "(B) universalidade...", "(C) unidade ou totalidade; anualidade ou periodicidade; universalidade.", "(D) legalidade..."], answer: "C" },
+                    { id: 43, text: "Posto de saúde aplicou 3.000 doses e foi acionado na Justiça por reações. Probabilidade saída de recursos remota. Divulgação em notas explicativas é:", options: ["(A) proibida.", "(B) obrigatória.", "(C) incentivada.", "(D) dispensada."], answer: "B" },
+                    { id: 44, text: "Estágios da despesa orçamentária (empenho, liquidação, pagamento). Estão corretas:", options: ["(A) I e II, apenas.", "(B) I, II e IV, apenas.", "(C) II, III e IV, apenas.", "(D) I, III e IV, apenas."], answer: "B" },
+                    { id: 45, text: "Para elaborar orçamento de 2026 começando pela receita bruta de vendas, a entidade deve levar em consideração:", options: ["(A) I, somente.", "(B) I e II, somente (Projeção de unidades e preço).", "(C) I e III, somente.", "(D) II e III, somente."], answer: "B" },
+                    { id: 46, text: "NBC TA 200 (R1) - Auditoria independente, presidente da empresa varejista estava", options: ["(A) errado...", "(B) certo...", "(C) certo, pois o objetivo da auditoria é obter segurança razoável de que as demonstrações contábeis como um todo estão livres de distorção relevante.", "(D) errado..."], answer: "C" },
+                    { id: 47, text: "NBC TA 705 - Modificações na opinião do auditor, comunicar aos responsáveis pela governança permite", options: ["(A) aumentar honorários...", "(B) comunicar reguladores...", "(C) fornecer ao auditor informações e explicações adicionais sobre os assuntos que deram origem às modificações previstas.", "(D) contratar outra firma..."], answer: "C" },
+                    { id: 48, text: "Auditoria Cia Beta S.A. prejuízo de R\$ 30M e passivo circulante excedendo o ativo em R\$ 35M. Continuidade operacional. Relatório deve conter", options: ["(A) ressalva...", "(B) adversa...", "(C) abstenção...", "(D) parágrafo de ênfase, chamando a atenção para a nota explicativa que descreve a incerteza relacionada à continuidade operacional."], answer: "D" },
+                    { id: 49, text: "Perícia contábil NBC TP 01 (R2). Assistente técnico X subscrever laudo de engenheiro:", options: ["(A) lícita...", "(B) vedada, pois é defeso ao assistente técnico validar, ratificar ou subscrever laudo elaborado por profissional de outra área; X deve oferecer seu próprio parecer técnico contábil.", "(C) lícita multidisciplinar...", "(D) lícita após homologação..."], answer: "B" },
+                    { id: 50, text: "Perita contábil Dra. W omissão de elemento obrigatório (NBC TP 01):", options: ["(A) cronograma...", "(B) ata...", "(C) a fundamentação, contemplando o método científico adotado e a análise técnica e/ou científica realizada.", "(D) contrato..."], answer: "C" }
+                ]
+            },
+            "2026.1_tipo2": {
+                name: "CFC 2026.1 - Prova Tipo 2",
+                questions: [
+                    { id: 1, text: "Nem sempre os números indicam uma quantidade precisa. Assinale a frase em que há precisão.", options: ["(A) Os especialistas em contagem de público dizem que havia mais de um milhão...", "(B) O mesmo motorista envolvido no acidente de ontem já havia passado por três outras ocorrências semelhantes.", "(C) Perto de mil veículos passaram pelo pedágio...", "(D) O vídeo mostrava cerca de 50 automóveis..."], answer: "B" },
+                    { id: 2, text: "Observe o seguinte texto de Bertrand Russell: 'A matemática, vista corretamente, possui não apenas verdade, mas também suprema beleza...'. Afirmação correta:", options: ["(A) A frase mostra simultaneamente aspectos positivos e negativos...", "(B) O emprego da expressão 'não apenas verdade' abre a possibilidade de dizer-se 'mas suprema beleza'.", "(C) A expressão 'uma beleza fria e austera' nega...", "(D) Ao afirmar que a beleza da matemática é como a da escultura, desvaloriza a escultura."], answer: "B" },
+                    { id: 3, text: "Empresa financiou R\$ 240.000,00 junto a um banco. SAC, 30 pagamentos mensais postecipados, taxa fixa de 4% ao mês. O valor do quinto pagamento será de", options: ["(A) R\$ 8.320,00.", "(B) R\$ 16.000,00.", "(C) R\$ 16.320,00.", "(D) R\$ 17.600,00."], answer: "C" },
+                    { id: 4, text: "Contador firma de auditoria, Data Analytics. Faturamento diário segue distribuição normal, média R\$ 40.000. Probabilidade entre R\$ 38.000 e R\$ 42.000 é 52%. Probabilidade de faturamento inferior a R\$ 38.000 é de", options: ["(A) 24%.", "(B) 26%.", "(C) 48%.", "(D) 76%."], answer: "B" },
+                    { id: 5, text: "Sociedade empresária Alfa, concessionária de serviços públicos, interrupção do serviço sem aviso prévio em sábado, em razão de emergência. Lei nº 8.987/1995:", options: ["(A) não se está diante de hipótese de descontinuidade...", "(B) não se está diante de hipótese de descontinuidade, pois a interrupção ocorreu em situação de emergência, dispensando aviso prévio.", "(C) se está diante de hipótese...", "(D) se está diante de hipótese..."], answer: "C" },
+                    { id: 6, text: "Estado Alfa celebrou contrato administrativo... modificação do contrato na fase de execução (Lei nº 14.133/2021):", options: ["(A) não poderá modificar...", "(B) poderá modificar com concordância...", "(C) poderá modificar unilateralmente o contrato administrativo, respeitados os direitos do contratado.", "(D) não poderá modificar..."], answer: "C" },
+                    { id: 7, text: "Município Alfa e Estado Beta sistema de registro de preços... órgão Charlie (Federal) pretende aderir. Lei nº 14.133/2021:", options: ["(A) não poderá aderir...", "(B) poderá aderir à ata do Estado Beta...", "(C) poderá aderir à ata do Município Alfa, mas não do Estado Beta.", "(D) não poderá aderir."], answer: "*" },
+                    { id: 8, text: "Firma de auditoria contratada para asseguração e posteriormente assumiu decisões administrativas... NBC PG 100 (R1) e NBC PG 01:", options: ["(A) independência pode ser relativizada...", "(B) assunção gerencial aceitável...", "(C) pode assumir funções...", "(D) a firma não deve assumir responsabilidade de gestão, pois isso gera ameaças à independência e compromete o interesse público."], answer: "C" },
+                    { id: 9, text: "Contador 'Q' Ltda. pressionado para postergar reconhecimento de despesa relevante. NBC PG 01:", options: ["(A) atender solicitação...", "(B) ajustar temporariamente...", "(C) manter a escrituração conforme as normas contábeis vigentes, preservando a integridade e objetividade profissional, mesmo diante de pressões internas.", "(D) negociar..."], answer: "C" },
+                    { id: 10, text: "Em 01/03/2026, sociedade empresária adquiriu equipamento relevante. R\$ 100.000 à vista, restante R\$ 105.000 em 60 dias (valor presente R\$ 100.000). Custo histórico do passivo líquido (NBC TG Estrutura Conceitual):", options: ["(A) R\$ 100.000,00.", "(B) R\$ 105.000,00.", "(C) R\$ 200.000,00.", "(D) R\$ 205.000,00."], answer: "C" },
+                    { id: 11, text: "De acordo com a NBC TG Estrutura Conceitual, ativo é recurso econômico presente controlado... Um recurso econômico representa", options: ["(A) um bem ou direito...", "(B) uma obrigação...", "(C) um direito que tem o potencial de produzir benefícios econômicos.", "(D) uma obrigação..."], answer: "D" },
+                    { id: 12, text: "Empresa de varejo inadimplência estimada 2% em 2024. Em 2025 reduziu exigências, inadimplência 5%. Administradores escolheram continuar usando 2% por conta de avaliação de desempenho. Representação fidedigna:", options: ["(A) pode ser, comparável.", "(B) pode ser, tempestiva.", "(C) não pode ser, não é neutra.", "(D) não pode ser, pois não é neutra / verificável."], answer: "D" },
+                    { id: 13, text: "Em janeiro de 2026, entidade comprou máquina por R\$ 50.000 (pago em fev). Recebida em março (instalada e disponível), utilizada em abril. Balanço Patrimonial reconhecida a partir de", options: ["(A) janeiro.", "(B) fevereiro.", "(C) março.", "(D) abril."], answer: "D" },
+                    { id: 14, text: "Empresa S.A. apresentou ativos fiscais diferidos em 31/12/2025 (R$ 6.669.000 individual, R$ 7.121.000 consolidado). NBC TG 32 (R4):", options: ["(A) prejuízos fiscais impedem...", "(B) a entidade deve reconhecer ativo fiscal diferido decorrente de prejuízos fiscais somente quando for provável a existência de lucro tributável futuro suficiente.", "(C) podem ser reconhecidos com base em estimativas...", "(D) inclusão de parágrafo..."], answer: "C" },
+                    { id: 15, text: "Companhia varejista comércio eletrônico. Cliente adquiriu livro via website, PIX instantâneo, NF emitida. Despachado em caminhão próprio da empresa, sofreu acidente no trajeto e mercadoria destruída. NBC TG 47:", options: ["(A) quando pagamento PIX foi realizado...", "(B) no momento do despacho da mercadoria pelo centro de distribuição, pois a empresa já cumpriu sua obrigação principal...", "(C) quando o livro for efetivamente entregue ao cliente, momento em que ocorre a transferência de controle do bem; como o acidente ocorreu antes da entrega, a perda do livro deve ser reconhecida pela própria companhia.", "(D) no momento da emissão da NF..."], answer: "B" },
+                    { id: 16, text: "NBC TG 06 (R3) - Arrendamento mercantil, assinale a opção correta sobre contabilização:", options: ["(A) ativo de direito de uso mensurado pelo valor justo...", "(B) menor entre prazo e vida útil...", "(C) reconhecimento do ativo de direito de uso pela ABC implica a baixa do ativo imobilizado pela XYZ, para evitar duplo reconhecimento do mesmo bem.", "(D) depreciação..."], answer: "C" },
+                    { id: 17, text: "Empresa S.A. no setor de bebidas (Cervejas e Refrigerantes). CODM revisa informações. Cervejas 12% da receita. Refrigerantes 9% da receita e 11% dos ativos. NBC TG 22 (R2):", options: ["(A) apenas Cervejas...", "(B) apenas Refrigerantes...", "(C) ambos os segmentos devem ser divulgados separadamente, pois cada um atende a, pelo menos, um dos critérios quantitativos previstos para segmentação reportável.", "(D) nenhum..."], answer: "B" },
+                    { id: 18, text: "Cidade Alfa atingida por enchente. Metalúrgica M perdas de 25% de estoques. Tratamento contábil:", options: ["(A) CMV...", "(B) despesa operacional sem ajuste no estoque...", "(C) normal no curso...", "(D) despesa (perdas por sinistro/enchente), com a correspondente baixa no saldo de estoques."], answer: "D" },
+                    { id: 19, text: "Alfa S.A. possui 70% em Beta S.A. adquirida por R$ 5.000.000. Lucro líquido de R$ 1.000.000 (R\$ 800k reservas, R\$ 200k dividendos). Equivalência patrimonial reconhecida no resultado:", options: ["(A) R\$ 140.000,00.", "(B) R\$ 560.000,00.", "(C) R\$ 700.000,00.", "(D) R$ 3.500.000,00."], answer: "C" },
+                    { id: 20, text: "Empresa varejista adquiriu mercadorias à vista (1.000 un a R\$ 200; imposto importação R\$ 10/un; seguro R\$ 6k; transporte R\$ 4k; ICMS R\$ 20/un não recuperável; desconto comercial R\$ 15/un). Custo total do estoque:", options: ["(A) R\$ 205.000,00.", "(B) R\$ 210.000,00.", "(C) R\$ 220.000,00.", "(D) R\$ 235.000,00."], answer: "B" },
+                    { id: 21, text: "Cia X e Cia Y balanços em 31/12/2025. Em 01/01/2026 X adquiriu 90% da Y por R\$ 42.000 à vista. Saldo do Ativo Circulante Consolidado após a compra:", options: ["(A) R\$ 38.000,00.", "(B) R\$ 74.000,00.", "(C) R\$ 75.800,00.", "(D) R\$ 78.000,00."], answer: "D" },
+                    { id: 22, text: "Concessionária faturas a prazo R\$ 100.000 (12 meses). AVP de R\$ 5.000 (juros embutidos). NBC TG 12 (R1), lançamento:", options: ["(A) Débito Clientes / Crédito Receita...", "(B) Débito Clientes 95k...", "(C) Débito Clientes 95k, Juros a apropriar 5k...", "(D) Débito Clientes R\$ 100.000 / Crédito Receita de Serviços R\$ 95.000, Juros a Apropriar R\$ 5.000."], answer: "D" },
+                    { id: 23, text: "Empresa 'A' venda de 350.000 quadros, total R\$ 250.000 em mercadorias. Recebimento: 50% Caixa, 25% Banco, 25% a prazo 30 dias. Contabilização:", options: ["(A) Débito Caixa R\$ 125.000, Banco R\$ 62.500, Duplicatas a Receber R\$ 62.500 / Crédito Receita R\$ 250.000", "(B) Débito Caixa...", "(C) Débito...", "(D) Débito..."], answer: "A" },
+                    { id: 24, text: "NBC TG 18 (R4) - Influência significativa (20% ou mais, conselho de administração). Afirmativas:", options: ["(A) I, apenas.", "(B) II e III, apenas.", "(C) I, II e III.", "(D) I e III, apenas."], answer: "D" },
+                    { id: 25, text: "Ativo intangível gerado internamente: R\$ 10k novo conhecimento, R\$ 15k formulação/projeto, R\$ 20k protótipos/testes (fase de desenvolvimento cumprida). Vida útil 10 anos, residual zero. Despesa de amortização anual:", options: ["(A) R\$ 0,00.", "(B) R\$ 2.000,00.", "(C) R\$ 3.500,00.", "(D) R\$ 4.500,00."], answer: "B" },
+                    { id: 26, text: "Construtora prédio iniciou 01/07/2025. Gastos R\$ 500k. Em 30/09/2025 moradores processaram (indenização R\$ 200k), perda possível. Obra suspensa até 31/12/2025. Balanço patrimonial:", options: ["(A) provisão R\$ 200k...", "(B) provisão R\$ 500k...", "(C) provisão R\$ 700k...", "(D) não houve impacto nos elementos patrimoniais."], answer: "D" },
+                    { id: 27, text: "DFC método direto mudou para indireto em 2025. Comparativo de 31/12/2024. Saldo de caixa gerado pelas três atividades:", options: ["(A) o saldo de caixa gerado pelas três atividades permanece igual.", "(B) mudança...", "(C) apenas operacional...", "(D) apenas financiamento..."], answer: "A" },
+                    { id: 28, text: "Empresa pagou R\$ 20.000 de juros sobre empréstimo bancário. NBC TG 03 (R3) - DFC, classificação dos juros pagos:", options: ["(A) operacionais ou de investimento.", "(B) operacionais ou de financiamento.", "(C) investimento ou financiamento.", "(D) financiamento ou equivalentes."], answer: "B" },
+                    { id: 29, text: "Prédio administrativo custo R\$ 500k, vida útil 20 anos, residual R\$ 100k. Após 5 anos classificado como mantido para venda (NBC TG 31). Após 1 ano desistiu da venda e voltou ao imobilizado. Mensuração em 05/01/2026:", options: ["(A) R\$ 380.000,00.", "(B) R\$ 405.000,00.", "(C) R\$ 420.000,00.", "(D) R\$ 450.000,00."], answer: "A" },
+                    { id: 30, text: "Contabilidade companhia 'B' S.A. listou contas: Adiantamento fornecedor (12k); Adiantamento clientes (8k); Encargos financeiros a transcorrer (3.5k); Ações em tesouraria (5k); Juros sobre capital próprio a pagar (4.5k); PDD (2k). Somatório das contas de natureza devedora:", options: ["(A) R\$ 20.500,00.", "(B) R\$ 15.500,00.", "(C) R\$ 12.000,00.", "(D) R\$ 20.000,00."], answer: "C" },
+                    { id: 31, text: "Loja de celulares Custo Médio Ponderado móvel diário. Movimentações em julho de 2025 descritas na prova. Estoque em 31/07/2025:", options: ["(A) R\$ 36.988,00.", "(B) R\$ 37.200,00.", "(C) R\$ 37.440,00.", "(D) R\$ 61.200,00."], answer: "A" },
+                    { id: 32, text: "Saldos contas de resultado Cia G S.A. em 31/12/X2. Assinale a opção correta:", options: ["(A) lucro bruto...", "(B) receita líquida...", "(C) lucro bruto de R$ 1.010.000,00.", "(D) lucro líquido..."], answer: "C" },
+                    { id: 33, text: "DVA: Despesas financeiras (35k); Assistência médica (80k); Aluguel (120k); Remuneração direta de empregados (240k). 'Remuneração de Capitais de Terceiros':", options: ["(A) R\$ 155.000,00.", "(B) R\$ 235.000,00.", "(C) R\$ 320.000,00.", "(D) R\$ 475.000,00."], answer: "D" },
+                    { id: 34, text: "Cia C S.A. em 31/12/X1 imobilizado (custo 105k, depreciação acumulada 20k, perda redução 10k). Teste de recuperabilidade: valor justo líquido de venda R\$ 80k, valor em uso R\$ 90k. Afirmativa correta:", options: ["(A) valor contábil...", "(B) valor recuperável 80k...", "(C) valor recuperável 90k...", "(D) a perda estimada para esse ativo é de R\$ 25.000,00."], answer: "D" },
+                    { id: 35, text: "Eventos Indústria J em um período (consumo matéria-prima, depreciações, salários, aquisições). Valores de Custos, Despesas e Investimentos:", options: ["(A) Custos 126.400...", "(B) Custos 26.400...", "(C) Custos 26.400...", "(D) Custos: R\$ 35.100,00; Despesas: R\$ 29.600,00; Investimentos: R\$ 228.000,00."], answer: "D" },
+                    { id: 36, text: "Indústria M S.A. custo padrão e custo real (insumos). Variação dos itens de insumos de produção:", options: ["(A) Óleo de Argan...", "(B) Estabilizantes...", "(C) Variações total desfavoráveis...", "(D) as variações de custo total dos Tensoativos e do Óleo de Argan são favoráveis."], answer: "D" },
+                    { id: 37, text: "Violinos K produziu 1.200, vendeu 900 unidades a R\$ 2.000 cada. Custo variável R\$ 600/un. Custos fixos e despesas fixas mensais na prova. Lucro Bruto pelo custeio por absorção:", options: ["(A) R$ 1.061.397,00.", "(B) R$ 1.465.200,00.", "(C) R$ 1.045.200,00.", "(D) R$ 1.098.900,00."], answer: "A" },
+                    { id: 38, text: "Indústria K S.A. setores Montagem (30 m²) e Acabamento (50 m²). Energia elétrica R\$ 25.000 rateada por área. Valor alocado à Montagem:", options: ["(A) R\$ 15.625,00.", "(B) R\$ 9.375,00.", "(C) R\$ 12.500,00.", "(D) R\$ 10.000,00."], answer: "C" },
+                    { id: 39, text: "Prazos médios da empresa (vendas a prazo, CMV, matéria-prima, etc.). Necessidade de capital de giro:", options: ["(A) R\$ 25.479,00.", "(B) R\$ 26.027,00.", "(C) R\$ 27.287,00.", "(D) R\$ 35.671,00."], answer: "D" },
+                    { id: 40, text: "Empresa N S.A. (Ativo circulante R\$ 1M, Ativo total R\$ 1.8M, Passivo não circulante R\$ 400k, Liquidez seca 0,50, Estoque médio R\$ 400k). Valor do Patrimônio Líquido:", options: ["(A) R\$ 200.000,00.", "(B) R\$ 400.000,00.", "(C) R$ 1.200.000,00.", "(D) R$ 1.600.000,00."], answer: "D" },
+                    { id: 41, text: "Empresa matéria-prima prazo 20 dias, fabricar/armazenar/vender 70 dias, venda a prazo 90 dias, receber 80 dias. Ciclo operacional:", options: ["(A) 70 dias.", "(B) 90 dias.", "(C) 150 dias.", "(D) 160 dias."], answer: "C" },
+                    { id: 42, text: "Joalheria relógios R\$ 300, custo variável R\$ 170, PE contábil 500 un. Aumento de preço para R\$ 330. Novo ponto de equilíbrio:", options: ["(A) 407 unidades.", "(B) 455 unidades.", "(C) 475 unidades.", "(D) 550 unidades."], answer: "D" },
+                    { id: 43, text: "LOA receitas de novo tributo dependente de aprovação legislativa. Viola princípio orçamentário da", options: ["(A) universalidade.", "(B) exclusividade.", "(C) legalidade.", "(D) anualidade."], answer: "C" },
+                    { id: 44, text: "Setor público empenho anulado parcialmente. Possível motivo:", options: ["(A) objeto não cumprido...", "(B) nota emitida incorreta...", "(C) o valor do empenho excedia o montante da despesa realizada.", "(D) valor insuficiente..."], answer: "C" },
+                    { id: 45, text: "MCASP concessão de serviços públicos, ativos da concessão, avalie afirmativas:", options: ["(A) I e IV.", "(B) III e IV.", "(C) II e III.", "(D) II e IV."], answer: "D" },
+                    { id: 46, text: "Níveis de planejamento em organização contábil (estratégico, tático, operacional). Associações corretas:", options: ["(A) 1-III...", "(B) 1-I...", "(C) 1-II...", "(D) 1-II; 2-III; 3-I."], answer: "D" },
+                    { id: 47, text: "Risco de auditoria, definição correta:", options: ["(A) julgamento técnico...", "(B) erro natural...", "(C) probabilidade de falha...", "(D) possibilidade de o auditor emitir uma opinião inadequada sobre demonstrações contábeis que contenham distorções relevantes não detectadas."], answer: "D" },
+                    { id: 48, text: "Auditoria transações de vendas fictícias (fraude). Auditor deve imediatamente", options: ["(A) procurar especialistas...", "(B) renunciar...", "(C) denúncia...", "(D) relatar ao Conselho de Administração."], answer: "D" },
+                    { id: 49, text: "Perícia: empregado admitido 01/03/2021 a 31/03/2023, salário R\$ 3.600, 15 dias de férias gozadas. Férias proporcionais + 1/3:", options: ["(A) R\$ 4.800,00.", "(B) R\$ 5.200,00.", "(C) R\$ 6.780,00.", "(D) R\$ 7.600,00."], answer: "B" },
+                    { id: 50, text: "CPC/2015 perito judicial prazo 30 dias úteis, prorrogação:", options: ["(A) conceder por uma vez mais 30 dias...", "(B) deverá conceder...", "(C) deverá conceder...", "(D) poderá conceder, por uma vez, a prorrogação de mais 15 dias úteis, se lhe for apresentado um motivo justificado."], answer: "D" }
+                ]
+            }
+        };
+
+        let currentUser = null;
+        let currentExamKey = "2026.2_tipo1";
+        let activeQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let timerInterval = null;
+        let timeLeft = 4 * 3600;
+
+        const loginScreen = document.getElementById('login-screen');
+        const examModal = document.getElementById('exam-modal');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        const examScreen = document.getElementById('exam-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const loginForm = document.getElementById('login-form');
+        const displayUsername = document.getElementById('display-username');
+        const openModalBtn = document.getElementById('open-modal-btn');
+        const cancelModalBtn = document.getElementById('cancel-modal-btn');
+        const confirmStartBtn = document.getElementById('confirm-start-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const backDashboard = document.getElementById('back-dashboard');
+        const backToDashBtn = document.getElementById('back-to-dash-btn');
+        const finishExamBtn = document.getElementById('finish-exam-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // SEGURANÇA DE LOGIN (NOME E SENHA ÚNICOS)
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('user-name').value.trim();
+            const code = document.getElementById('user-code').value.trim();
+            if(!name || !code) return;
+
+            let registeredUsers = JSON.parse(localStorage.getItem('cfc_registered_users')) || [];
+            const existingUser = registeredUsers.find(u => u.name.toLowerCase() === name.toLowerCase());
+
+            if(existingUser) {
+                if(existingUser.code !== code) {
+                    alert("Atenção: Este nome já está registado com outro código de acesso! Insira a palavra-passe correta.");
+                    return;
+                }
+            } else {
+                registeredUsers.push({ name, code });
+                localStorage.setItem('cfc_registered_users', JSON.stringify(registeredUsers));
+            }
+
+            currentUser = { name, code };
+            localStorage.setItem('cfc_current_user', JSON.stringify(currentUser));
+            
+            loginScreen.classList.add('hidden');
+            dashboardScreen.classList.remove('hidden');
+            updateDashboard();
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('cfc_current_user');
+            currentUser = null;
+            dashboardScreen.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            document.getElementById('login-form').reset();
+        });
+
+        // MODAL DE SELEÇÃO DE PROVA
+        openModalBtn.addEventListener('click', () => {
+            examModal.classList.remove('hidden');
+        });
+
+        cancelModalBtn.addEventListener('click', () => {
+            examModal.classList.add('hidden');
+        });
+
+        confirmStartBtn.addEventListener('click', () => {
+            const selectedRadio = document.querySelector('input[name="selected-exam"]:checked');
+            if(selectedRadio) {
+                currentExamKey = selectedRadio.value;
+                activeQuestions = examsData[currentExamKey].questions;
+                examModal.classList.add('hidden');
+                dashboardScreen.classList.add('hidden');
+                examScreen.classList.remove('hidden');
+                
+                document.getElementById('exam-title-header').textContent = examsData[currentExamKey].name;
+                currentQuestionIndex = 0;
+                userAnswers = {};
+                timeLeft = 4 * 3600;
+                startTimer();
+                buildSidebarGrid();
+                loadQuestion(currentQuestionIndex);
+            }
+        });
+
+        function updateDashboard() {
+            displayUsername.textContent = currentUser.name;
+            const history = getLocalStorageHistory();
+            const userAttempts = history.filter(h => h.name.toLowerCase() === currentUser.name.toLowerCase());
+            
+            document.getElementById('stat-attempts').textContent = userAttempts.length;
+            if(userAttempts.length > 0) {
+                const best = Math.max(...userAttempts.map(h => h.percent));
+                const sum = userAttempts.reduce((acc, h) => acc + h.percent, 0);
+                const avg = Math.round(sum / userAttempts.length);
+                document.getElementById('stat-best').textContent = best + '%';
+                document.getElementById('stat-avg').textContent = avg + '%';
+            } else {
+                document.getElementById('stat-best').textContent = '0%';
+                document.getElementById('stat-avg').textContent = '0%';
+            }
+
+            renderLeaderboard(history);
+        }
+
+        function getLocalStorageHistory() {
+            try {
+                return JSON.parse(localStorage.getItem('cfc_exam_history')) || [];
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function renderLeaderboard(history) {
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+
+            if(history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">Nenhum simulado realizado ainda. Seja o primeiro!</td></tr>`;
+                return;
+            }
+
+            const sortedHistory = [...history].reverse();
+
+            sortedHistory.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-slate-900">${item.name}</td>
+                    <td class="p-3 text-xs text-slate-600">${item.examName || 'CFC 2026.2 - Tipo 1'}</td>
+                    <td class="p-3"><span class="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg text-xs font-bold">${item.percent}% (${item.score}/50)</span></td>
+                    <td class="p-3 text-slate-400 text-xs">${item.date}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        backDashboard.addEventListener('click', () => {
+            if(confirm("Deseja realmente sair? O seu progresso atual será perdido.")) {
+                clearInterval(timerInterval);
+                examScreen.classList.add('hidden');
+                dashboardScreen.classList.remove('hidden');
+                updateDashboard();
+            }
+        });
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const hours = String(Math.floor(timeLeft / 3600)).padStart(2, '0');
+                const minutes = String(Math.floor((timeLeft % 3600) / 60)).padStart(2, '0');
+                const seconds = String(timeLeft % 60).padStart(2, '0');
+                document.getElementById('timer').textContent = `${hours}:${minutes}:${seconds}`;
+
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Tempo esgotado! O simulado será finalizado automaticamente.");
+                    finishExam();
+                }
+            }, 1000);
+        }
+
+        function buildSidebarGrid() {
+            const grid = document.getElementById('sidebar-grid');
+            grid.innerHTML = '';
+            activeQuestions.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `sidebar-btn-${idx}`;
+                btn.textContent = idx + 1;
+                btn.className = "w-9 h-9 rounded-xl font-semibold text-xs transition border flex items-center justify-center " + 
+                    (userAnswers[idx] ? "bg-emerald-500 text-white border-emerald-600 shadow-sm shadow-emerald-500/30" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100");
+                btn.onclick = () => {
+                    currentQuestionIndex = idx;
+                    loadQuestion(currentQuestionIndex);
+                };
+                grid.appendChild(btn);
+            });
+            updateAnsweredCount();
+        }
+
+        function updateSidebarGrid() {
+            activeQuestions.forEach((q, idx) => {
+                const btn = document.getElementById(`sidebar-btn-${idx}`);
+                if(btn) {
+                    btn.className = "w-9 h-9 rounded-xl font-semibold text-xs transition border flex items-center justify-center " + 
+                        (userAnswers[idx] ? "bg-emerald-500 text-white border-emerald-600 shadow-sm shadow-emerald-500/30" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100");
+                }
+            });
+            updateAnsweredCount();
+        }
+
+        function updateAnsweredCount() {
+            const answeredCount = Object.keys(userAnswers).length;
+            document.getElementById('answered-count').textContent = `${answeredCount}/50 respondidas`;
+        }
+
+        function loadQuestion(index) {
+            const q = activeQuestions[index];
+            document.getElementById('question-badge').textContent = `Questão ${index + 1} de 50`;
+            document.getElementById('question-content').textContent = q.text;
+            
+            const statusText = document.getElementById('question-status-text');
+            if(userAnswers[index]) {
+                statusText.textContent = `Respondida (Opção ${userAnswers[index]})`;
+                statusText.className = "text-xs text-emerald-600 font-semibold";
+            } else {
+                statusText.textContent = "Não respondida";
+                statusText.className = "text-xs text-slate-400 font-medium";
+            }
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach(opt => {
+                const optLetter = opt.substring(1, 2);
+                const isSelected = userAnswers[index] === optLetter;
+
+                const label = document.createElement('label');
+                label.className = `flex items-start gap-3 p-4 rounded-xl border transition cursor-pointer ${isSelected ? 'bg-blue-50 border-blue-300 text-blue-900 shadow-sm' : 'border-slate-200 hover:bg-slate-50 text-slate-700'}`;
+                
+                label.innerHTML = `
+                    <input type="radio" name="question-opt" value="${optLetter}" ${isSelected ? 'checked' : ''} class="mt-1 text-blue-600 focus:ring-blue-500">
+                    <span class="text-sm md:text-base leading-snug">${opt}</span>
+                `;
+
+                label.querySelector('input').addEventListener('change', () => {
+                    userAnswers[index] = optLetter;
+                    updateSidebarGrid();
+                    loadQuestion(index);
+                });
+
+                optionsContainer.appendChild(label);
+            });
+
+            prevBtn.disabled = index === 0;
+            nextBtn.textContent = index === activeQuestions.length - 1 ? "Revisar / Finalizar" : "Seguinte";
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if(currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion(currentQuestionIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if(currentQuestionIndex < activeQuestions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion(currentQuestionIndex);
+            } else {
+                if(confirm("Deseja finalizar o simulado e ver o resultado detalhado?")) {
+                    finishExam();
+                }
+            }
+        });
+
+        finishExamBtn.addEventListener('click', () => {
+            if(confirm("Deseja realmente finalizar o simulado?")) {
+                finishExam();
+            }
+        });
+
+        function finishExam() {
+            clearInterval(timerInterval);
+            examScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            let score = 0;
+            activeQuestions.forEach((q, idx) => {
+                if(q.answer === '*' || userAnswers[idx] === q.answer) {
+                    score++;
+                }
+            });
+
+            const percent = Math.round((score / 50) * 100);
+            const timeSpentSecs = (4 * 3600) - timeLeft;
+            const timeFormatted = `${String(Math.floor(timeSpentSecs / 3600)).padStart(2, '0')}:${String(Math.floor((timeSpentSecs % 3600) / 60)).padStart(2, '0')}`;
+
+            document.getElementById('res-score').textContent = `${score} / 50`;
+            document.getElementById('res-percent').textContent = `${percent}%`;
+            document.getElementById('res-time').textContent = timeFormatted;
+
+            const history = getLocalStorageHistory();
+            history.push({
+                name: currentUser.name,
+                examName: examsData[currentExamKey].name,
+                score: score,
+                percent: percent,
+                date: new Date().toLocaleDateString('pt-PT') + ' ' + new Date().toLocaleTimeString('pt-PT', {hour: '2-digit', minute:'2-digit'})
+            });
+            localStorage.setItem('cfc_exam_history', JSON.stringify(history));
+
+            renderDetailedReview();
+        }
+
+        function renderDetailedReview() {
+            const container = document.getElementById('detailed-review');
+            container.innerHTML = '';
+
+            activeQuestions.forEach((q, idx) => {
+                const userAns = userAnswers[idx] || 'Não respondida';
+                const isAnnulled = q.answer === '*';
+                const isCorrect = isAnnulled || (userAns === q.answer);
+
+                const div = document.createElement('div');
+                div.className = "pt-6 first:pt-0";
+                div.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-bold text-sm text-slate-900">Questão ${idx + 1}</span>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${isAnnulled ? 'bg-amber-50 text-amber-700 border border-amber-200' : (isCorrect ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200')}">
+                            ${isAnnulled ? '<i class="fa-solid fa-triangle-exclamation"></i> Questão Anulada (Ponto Garantido)' : (isCorrect ? '<i class="fa-solid fa-check"></i> Acertou' : '<i class="fa-solid fa-xmark"></i> Errou')}
+                        </span>
+                    </div>
+                    <p class="text-sm text-slate-700 mb-3">${q.text}</p>
+                    <div class="bg-slate-50 p-3 rounded-xl text-xs space-y-1 border border-slate-100">
+                        <p><strong>A sua resposta:</strong> <span class="${isCorrect ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}">${userAns}</span></p>
+                        <p><strong>Gabarito Oficial:</strong> <span class="text-blue-600 font-bold">${isAnnulled ? 'Anulada' : q.answer}</span></p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        backToDashBtn.addEventListener('click', () => {
+            resultScreen.classList.add('hidden');
+            dashboardScreen.classList.remove('hidden');
+            updateDashboard();
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('cfc_current_user');
+            if(savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    loginScreen.classList.add('hidden');
+                    dashboardScreen.classList.remove('hidden');
+                    updateDashboard();
+                } catch(e) {}
+            }
+        });
+    </script>
+</body>
+</html>
